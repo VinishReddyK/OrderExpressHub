@@ -1,0 +1,7 @@
+I have to write a new api to able to edit user profiles. upon first login we check if user details are abailable
+on their corresponding table like foodrunner in foodrunner table, if not we redirect them to fill the user details
+they can update these anytime in the future.
+
+Daily reports api is yet to be writened.
+
+Extra Ingredients should be added into the orders api itself but a separate file to create update delte extra ingredients.
