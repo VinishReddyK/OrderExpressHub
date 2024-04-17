@@ -10,6 +10,7 @@ import UnifiedMenuManager from "./components/Menu";
 import KitchenAreaManager from "./components/Kitchen";
 import OrdersComponent from "./components/Orders";
 import StickyBoard from "./components/StickeyBoard";
+import OrderReport from "./components/Reports";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="/kitchen" element={<KitchenAreaManager />} />
             <Route path="/orders" element={<OrdersComponent />} />
             <Route path="/board" element={<StickyBoard />} />
+            <Route path="/report" element={<OrderReport />} />
           </Route>
         </Routes>
       </div>

@@ -7,16 +7,21 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import SoupKitchenIcon from "@mui/icons-material/SoupKitchen";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
+import StickyNote2Icon from "@mui/icons-material/StickyNote2";
+import BlindsClosedIcon from "@mui/icons-material/BlindsClosed";
+
+const role = localStorage.getItem("role");
 
 const menuItems = [
   { text: "Profile", icon: <AccountCircleIcon fontSize="large" />, path: "/" },
-  { text: "Categories", icon: <CategoryIcon fontSize="large" />, path: "/categories" },
-  { text: "Items", icon: <FilterListIcon fontSize="large" />, path: "/items" },
-  { text: "Menus", icon: <ListAltIcon fontSize="large" />, path: "/menus" },
-  { text: "Kitchen Areas", icon: <SoupKitchenIcon fontSize="large" />, path: "/kitchen" },
-  { text: "Orders", icon: <AddBusinessIcon fontSize="large" />, path: "/orders" },
-  { text: "Board", icon: <AddBusinessIcon fontSize="large" />, path: "/board" },
-];
+  { text: "Categories", icon: <CategoryIcon fontSize="large" />, path: "/categories", roles: ["manager", "chef"] },
+  { text: "Items", icon: <FilterListIcon fontSize="large" />, path: "/items", roles: ["manager", "chef"] },
+  { text: "Menus", icon: <ListAltIcon fontSize="large" />, path: "/menus", roles: ["manager", "chef"] },
+  { text: "Kitchen Areas", icon: <SoupKitchenIcon fontSize="large" />, path: "/kitchen", roles: ["manager"] },
+  { text: "Orders", icon: <AddBusinessIcon fontSize="large" />, path: "/orders", roles: ["manager", "chef", "waitstaff"] },
+  { text: "Board", icon: <StickyNote2Icon fontSize="large" />, path: "/board", roles: ["manager", "kitchenporter", "foodrunner", "chef"] },
+  { text: "Closing Stats", icon: <BlindsClosedIcon fontSize="large" />, path: "/report", roles: ["manager"] },
+].filter((item) => !item.roles || item.roles.includes(role));
 
 const Navigation = () => {
   const navigate = useNavigate();

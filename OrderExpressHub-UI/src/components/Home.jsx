@@ -7,6 +7,18 @@ import SaveIcon from "@mui/icons-material/Save";
 import { api } from "./axios";
 
 function UserProfile() {
+  useEffect(() => {
+    if (!localStorage.getItem("hasRefreshed")) {
+      localStorage.setItem("hasRefreshed", "true");
+      window.location.reload();
+    }
+    const timer = setTimeout(() => {
+      localStorage.removeItem("hasRefreshed");
+      console.log("Refresh flag cleared after 5 seconds.");
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const navigate = useNavigate();
   const [editMode, setEditMode] = useState(false);
   const [editableUser, setEditableUser] = useState({});
@@ -25,7 +37,8 @@ function UserProfile() {
     async function getProfile() {
       try {
         const res = await api.get(`/profile/${user_id}`);
-        setEditableUser(res.data); // Assuming data is the response object
+        setEditableUser(res.data);
+        localStorage.setItem("kitchen_area_id", res.data.kitchen_area_id);
         fetchKitchenAreas();
       } catch (error) {
         console.error("Failed to fetch profile", error);
@@ -46,6 +59,7 @@ function UserProfile() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("kitchen_area_id");
     navigate("/login");
   };
 
@@ -106,7 +120,8 @@ function UserProfile() {
           mx: "auto",
         }}
       >
-        <TextField label="Email" value={editableUser.email || ""} margin="normal" fullWidth disabled={true} />
+        <TextField label="Email" value={editableUser.email || ""} margin="normal" fullWidth disabled />
+        <TextField label="Role" value={role || ""} margin="normal" fullWidth disabled />
         <TextField
           label="Full Name"
           value={editableUser.full_name || ""}

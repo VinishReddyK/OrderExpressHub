@@ -57,6 +57,9 @@ const Section = ({ status, children }) => {
 };
 
 const StickyBoard = () => {
+  const role = localStorage.getItem("role");
+  const kitchen_area_id = localStorage.getItem("kitchen_area_id");
+
   const [orders, setOrders] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -67,8 +70,12 @@ const StickyBoard = () => {
   const fetchOrders = useCallback(async () => {
     if (!isDragging) {
       const response = await api.get("/orders");
-      // Sort orders by priority, assuming lower numbers are higher priority
-      const sortedOrders = response.data.sort((a, b) => a.priority - b.priority);
+      let sortedOrders = response.data.sort((a, b) => a.priority - b.priority);
+
+      if (role !== "manager" && role !== "waitstaff") {
+        sortedOrders = sortedOrders.filter((order) => order.kitchen_area_id == kitchen_area_id);
+      }
+
       setOrders(sortedOrders);
     }
   }, [isDragging]);
@@ -85,7 +92,14 @@ const StickyBoard = () => {
     fetchOrders();
   };
 
-  const statuses = ["assigned to kitchen", "preparing", "ready", "served", "packed", "pickedup", "closed"];
+  let statuses = [];
+  if (role == "foodrunner") {
+    statuses = ["ready", "served", "packed", "pickedup", "closed"];
+  } else if (role == "kitchenporter") {
+    statuses = ["assigned to kitchen", "preparing", "ready"];
+  } else {
+    statuses = ["assigned to kitchen", "preparing", "ready", "served", "packed", "pickedup", "closed"];
+  }
 
   return (
     <DndProvider backend={HTML5Backend}>
