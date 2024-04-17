@@ -40,7 +40,7 @@ router.post("/", (req, res) => {
         const token = jwt.sign({ user_id: user_org.user_id, org_id: user_org.org_id, role: user_org.role, org_name }, KEY, {
           expiresIn: 86400,
         });
-        res.status(200).send({ auth: true, token: token, role: user_org.role });
+        res.status(200).send({ auth: true, token: token, role: user_org.role, user_id: user_org.user_id });
       }
     );
 

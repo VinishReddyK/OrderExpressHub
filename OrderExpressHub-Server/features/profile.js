@@ -123,29 +123,21 @@ router.put("/:id", (req, res) => {
     if (err) {
       return res.status(500).json({ error: "Internal server error." });
     } else if (this.changes === 0) {
-      if (req.role !== "waitstaff" && req.role !== "manager") {
-        org_db.run(
-          `UPDATE ${table_names[req.role]} SET full_name = ?, phone_number = ?, address = ?, kitchen_area_id = ? WHERE id = ?`,
-          [full_name, phone_number, address, kitchen_area_id, id],
-          (err) => {
-            if (err) {
-              return res.status(500).json({ error: "Internal server error." });
-            }
-            res.json({ message: "Successfully updated" });
-          }
-        );
-      } else {
-        org_db.run(
-          `UPDATE ${table_names[req.role]} SET full_name = ?, phone_number = ?, address = ? WHERE id = ?`,
-          [full_name, phone_number, address, id],
-          (err, ress) => {
-            if (err) {
-              return res.status(500).json({ error: "Internal server error." });
-            }
-            res.json({ message: "Successfully updated" });
-          }
-        );
-      }
+      const insertQuery = `
+        INSERT INTO ${table_names[req.role]} (full_name, phone_number, address${
+        req.role !== "waitstaff" && req.role !== "manager" ? ", kitchen_area_id" : ""
+      }, id)
+        VALUES (?, ?, ?, ?${req.role !== "waitstaff" && req.role !== "manager" ? ", ?" : ""})
+      `;
+
+      org_db.run(insertQuery, params, (insertErr) => {
+        if (insertErr) {
+          return res.status(500).json({ error: "Failed to insert new record." });
+        }
+        res.json({ message: "Successfully inserted new record." });
+      });
+    } else {
+      res.json({ message: "Successfully updated." });
     }
   });
 });

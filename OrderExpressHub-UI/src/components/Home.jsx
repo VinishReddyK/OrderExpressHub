@@ -1,29 +1,46 @@
 import { useEffect, useState } from "react";
-import { Button, TextField, Box, IconButton } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { Box, Button, IconButton, TextField, Modal, Typography, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import CancelIcon from "@mui/icons-material/Cancel";
 import SaveIcon from "@mui/icons-material/Save";
-import { useNavigate } from "react-router-dom";
 import { api } from "./axios";
 
 function UserProfile() {
+  const navigate = useNavigate();
   const [editMode, setEditMode] = useState(false);
   const [editableUser, setEditableUser] = useState({});
-  const role = localStorage.getItem("role");
+  const [kitchenAreas, setKitchenAreas] = useState([]);
+  const [openModal, setOpenModal] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({
+    email: "",
+    password: "",
+    role: "",
+  });
   const user_id = localStorage.getItem("user_id");
+  const role = localStorage.getItem("role");
   const isManager = role === "manager";
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const getProfile = async () => {
+    async function getProfile() {
       try {
         const res = await api.get(`/profile/${user_id}`);
         setEditableUser(res.data); // Assuming data is the response object
+        fetchKitchenAreas();
       } catch (error) {
         console.error("Failed to fetch profile", error);
-        // Handle errors appropriately
       }
-    };
+    }
+
+    async function fetchKitchenAreas() {
+      try {
+        const response = await api.get("/kitchen");
+        setKitchenAreas(response.data);
+      } catch (error) {
+        console.error("Error fetching kitchen areas:", error);
+      }
+    }
+
     getProfile();
   }, [user_id]);
 
@@ -46,99 +63,157 @@ function UserProfile() {
       setEditMode(false);
     } catch (error) {
       console.error("Failed to save changes", error);
-      // Handle errors appropriately
+    }
+  };
+
+  const handleOpenModal = () => setOpenModal(true);
+  const handleCloseModal = () => setOpenModal(false);
+
+  const handleNewEmployeeChange = (prop) => (event) => {
+    setNewEmployee((prev) => ({ ...prev, [prop]: event.target.value }));
+  };
+
+  const submitNewEmployee = async () => {
+    try {
+      await api.post("/profile/new", newEmployee);
+      handleCloseModal();
+    } catch (error) {
+      console.error("Failed to add new employee", error);
     }
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        margin: 2,
-        padding: 2,
-        border: "1px solid #ccc",
-        borderRadius: "4px",
-        maxWidth: 600,
-        mx: "auto", // This centers the Box horizontally
-      }}
-    >
-      <TextField
-        label="Email"
-        value={editableUser.email || ""}
-        margin="normal"
-        fullWidth
-        InputProps={{
-          readOnly: true,
-        }}
-      />
-      <TextField
-        label="Full Name"
-        value={editableUser.full_name || ""}
-        onChange={handleFieldChange("full_name")}
-        margin="normal"
-        fullWidth
-        InputProps={{
-          readOnly: !editMode,
-        }}
-      />
-      <TextField
-        label="Phone Number"
-        value={editableUser.phone_number || ""}
-        onChange={handleFieldChange("phone_number")}
-        margin="normal"
-        fullWidth
-        InputProps={{
-          readOnly: !editMode,
-        }}
-      />
-      <TextField
-        label="Address"
-        value={editableUser.address || ""}
-        onChange={handleFieldChange("address")}
-        margin="normal"
-        fullWidth
-        InputProps={{
-          readOnly: !editMode,
-        }}
-      />
-      {editableUser.kitchen_area_id && (
-        <TextField
-          label="Kitchen Area ID"
-          value={editableUser.kitchen_area_id}
-          onChange={handleFieldChange("kitchen_area_id")}
-          margin="normal"
-          fullWidth
-          InputProps={{
-            readOnly: !editMode,
-          }}
-        />
-      )}
-      {isManager && !editMode && (
-        <Button color="primary" variant="contained" onClick={() => console.log("Add new employee")}>
+    <>
+      {isManager && (
+        <Button color="primary" onClick={handleOpenModal} variant="contained" style={{ marginLeft: "50px" }}>
           Add New Employee
         </Button>
       )}
-      <Button color="primary" variant="outlined" onClick={handleLogout}>
+      <Button color="error" style={{ float: "right", marginRight: "50px" }} variant="contained" onClick={handleLogout}>
         Log Out
       </Button>
-      {!editMode ? (
-        <IconButton onClick={toggleEditMode} color="primary">
-          <EditIcon />
-        </IconButton>
-      ) : (
-        <>
-          <IconButton onClick={toggleEditMode} color="secondary">
-            <CancelIcon />
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: 2,
+          padding: 2,
+          border: "1px solid #ccc",
+          borderRadius: "4px",
+          maxWidth: 600,
+          mx: "auto",
+        }}
+      >
+        <TextField label="Email" value={editableUser.email || ""} margin="normal" fullWidth disabled={true} />
+        <TextField
+          label="Full Name"
+          value={editableUser.full_name || ""}
+          onChange={handleFieldChange("full_name")}
+          margin="normal"
+          fullWidth
+          disabled={!editMode}
+        />
+        <TextField
+          label="Phone Number"
+          value={editableUser.phone_number || ""}
+          onChange={handleFieldChange("phone_number")}
+          margin="normal"
+          fullWidth
+          disabled={!editMode}
+        />
+        <TextField
+          label="Address"
+          value={editableUser.address || ""}
+          onChange={handleFieldChange("address")}
+          margin="normal"
+          fullWidth
+          disabled={!editMode}
+        />
+        {role !== "manager" && role !== "waitstaff" && (
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="kitchen-area-label">Kitchen Area</InputLabel>
+            <Select
+              labelId="kitchen-area-label"
+              id="kitchen-area-select"
+              value={editableUser.kitchen_area_id || ""}
+              onChange={handleFieldChange("kitchen_area_id")}
+              label="Kitchen Area"
+              disabled={!editMode}
+            >
+              {kitchenAreas.map((area) => (
+                <MenuItem key={area.id} value={area.id}>
+                  {area.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
+        {!editMode ? (
+          <IconButton onClick={toggleEditMode} color="primary">
+            <EditIcon />
           </IconButton>
-          <IconButton onClick={saveChanges} color="primary">
-            <SaveIcon />
-          </IconButton>
-        </>
-      )}
-    </Box>
+        ) : (
+          <>
+            <IconButton onClick={toggleEditMode} color="secondary">
+              <CancelIcon />
+            </IconButton>
+            <IconButton onClick={saveChanges} color="primary">
+              <SaveIcon />
+            </IconButton>
+          </>
+        )}
+        <Modal open={openModal} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 400,
+              bgcolor: "background.paper",
+              border: "2px solid #000",
+              boxShadow: 24,
+              p: 4,
+            }}
+          >
+            <Typography id="modal-modal-title" variant="h6" component="h2">
+              Add New Employee
+            </Typography>
+            <TextField label="Email" value={newEmployee.email} onChange={handleNewEmployeeChange("email")} margin="normal" fullWidth />
+            <TextField
+              label="Password"
+              type="password"
+              value={newEmployee.password}
+              onChange={handleNewEmployeeChange("password")}
+              margin="normal"
+              fullWidth
+            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="role-label">Role</InputLabel>
+              <Select
+                labelId="role-label"
+                id="role-select"
+                value={newEmployee.role}
+                label="Role"
+                onChange={handleNewEmployeeChange("role")}
+              >
+                <MenuItem value="manager">Manager</MenuItem>
+                <MenuItem value="kitchenporter">Kitchen Porter</MenuItem>
+                <MenuItem value="foodrunner">Food Runner</MenuItem>
+                <MenuItem value="chef">Chef</MenuItem>
+                <MenuItem value="waitstaff">Wait Staff</MenuItem>
+              </Select>
+            </FormControl>
+            <Button color="primary" variant="contained" onClick={submitNewEmployee} sx={{ mt: 2 }}>
+              Submit
+            </Button>
+          </Box>
+        </Modal>
+      </Box>
+    </>
   );
 }
 

@@ -7,6 +7,7 @@ import Navigation from "./components/Navigation";
 import CategoriesComponent from "./components/Categories";
 import ItemsComponent from "./components/Items";
 import UnifiedMenuManager from "./components/Menu";
+import KitchenAreaManager from "./components/Kitchen";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/categories" element={<CategoriesComponent />} />
             <Route path="/items" element={<ItemsComponent />} />
             <Route path="/menus" element={<UnifiedMenuManager />} />
+            <Route path="/kitchen" element={<KitchenAreaManager />} />
           </Route>
         </Routes>
       </div>
