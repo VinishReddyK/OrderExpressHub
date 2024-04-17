@@ -141,15 +141,13 @@ const createOrgTables = (org_id, org_name) => {
               id INTEGER PRIMARY KEY,
               full_name TEXT NOT NULL,
               phone_number TEXT,
-              address TEXT,
-              FOREIGN KEY (id) REFERENCES User(id)
+              address TEXT
             );`,
     waitstaff: `CREATE TABLE IF NOT EXISTS waitstaff (
               id INTEGER PRIMARY KEY,
               full_name TEXT NOT NULL,
               phone_number TEXT,
-              address TEXT,
-              FOREIGN KEY (id) REFERENCES User(id)
+              address TEXT
             );`,
     chef: `CREATE TABLE IF NOT EXISTS chef (
           id INTEGER PRIMARY KEY,
@@ -157,7 +155,6 @@ const createOrgTables = (org_id, org_name) => {
           phone_number TEXT,
           address TEXT,
           kitchen_area_id INTEGER,
-          FOREIGN KEY (id) REFERENCES User(id),
           FOREIGN KEY (kitchen_area_id) REFERENCES kitchen_area(id) ON DELETE CASCADE
         );`,
     kitchen_porter: `CREATE TABLE IF NOT EXISTS kitchen_porter (
@@ -166,7 +163,6 @@ const createOrgTables = (org_id, org_name) => {
           phone_number TEXT,
           address TEXT,
           kitchen_area_id INTEGER,
-          FOREIGN KEY (id) REFERENCES User(id),
           FOREIGN KEY (kitchen_area_id) REFERENCES kitchen_area(id) ON DELETE CASCADE
         );`,
     food_runner: `CREATE TABLE IF NOT EXISTS food_runner (
@@ -175,7 +171,6 @@ const createOrgTables = (org_id, org_name) => {
           phone_number TEXT,
           address TEXT,
           kitchen_area_id INTEGER,
-          FOREIGN KEY (id) REFERENCES User(id),
           FOREIGN KEY (kitchen_area_id) REFERENCES kitchen_area(id) ON DELETE CASCADE
         );`,
   };

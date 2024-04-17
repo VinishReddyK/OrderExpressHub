@@ -73,21 +73,7 @@ router.get("/", (req, res) => {
             res.status(500).json({ error: error.message });
             return;
           }
-          const groupedItems = items.reduce((acc, item) => {
-            const { category_name, ...itemWithoutCategoryName } = item;
-            if (!acc[category_name]) {
-              acc[category_name] = [];
-            }
-            acc[category_name].push(itemWithoutCategoryName);
-            return acc;
-          }, {});
-
-          order.items = groupedItems;
-
-          ordersProcessed++;
-          if (ordersProcessed === orders.length) {
-            res.json(orders);
-          }
+          res.json(items);
         }
       );
     });

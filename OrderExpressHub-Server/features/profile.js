@@ -67,24 +67,85 @@ router.post("/new", async (req, res) => {
   }
 });
 
-router.delete("/:user_id", async (req, res) => {
-  const { user_id } = req.params;
-  const org_id = req.org_id;
+router.get("/:id", (req, res) => {
+  const { id } = req.params;
   const db = getDatabaseInstance("./Group3_OrderExpressHub.sqlite");
+  const org_db = getDatabaseInstance(req.schema_name);
+  const table_names = {
+    manager: "manager",
+    kitchenporter: "kitchen_porter",
+    foodrunner: "food_runner",
+    chef: "chef",
+    waitstaff: "waitstaff",
+  };
 
-  if (req.role !== "manager") {
-    return res.status(403).send({ message: "Only managers can remove users from the organization." });
-  }
-
-  db.run(`DELETE FROM user_orgs WHERE user_id = ? AND org_id = ?`, [user_id, org_id], function (err) {
+  db.get("SELECT email FROM users WHERE id = ?", [id], (err, result) => {
     if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: "Internal server error." });
+    } else if (!result) {
+      return res.status(404).json({ error: "User not found." });
     }
-    if (this.changes > 0) {
-      res.status(200).json({ message: "User removed from organization successfully." });
-    } else {
-      res.status(404).json({ message: "User not found in the organization." });
+    org_db.get(`SELECT * FROM ${table_names[req.role]} WHERE id = ?`, [id], (err, userResult) => {
+      if (err) {
+        return res.status(500).json({ error: "Internal server error." });
+      }
+      res.json({ ...result, ...userResult });
+    });
+  });
+});
+
+router.put("/:id", (req, res) => {
+  const { id } = req.params;
+  const { full_name, phone_number, address, kitchen_area_id } = req.body;
+  const org_db = getDatabaseInstance(req.schema_name);
+
+  const table_names = {
+    manager: "manager",
+    kitchenporter: "kitchen_porter",
+    foodrunner: "food_runner",
+    chef: "chef",
+    waitstaff: "waitstaff",
+  };
+
+  const updateQuery = `
+    UPDATE ${table_names[req.role]}
+    SET full_name = ?, phone_number = ?, address = ?
+    ${req.role !== "waitstaff" && req.role !== "manager" ? ", kitchen_area_id = ?" : ""}
+    WHERE id = ?
+  `;
+
+  const params =
+    req.role !== "waitstaff" && req.role !== "manager"
+      ? [full_name, phone_number, address, kitchen_area_id, id]
+      : [full_name, phone_number, address, id];
+
+  org_db.run(updateQuery, params, function (err) {
+    if (err) {
+      return res.status(500).json({ error: "Internal server error." });
+    } else if (this.changes === 0) {
+      if (req.role !== "waitstaff" && req.role !== "manager") {
+        org_db.run(
+          `UPDATE ${table_names[req.role]} SET full_name = ?, phone_number = ?, address = ?, kitchen_area_id = ? WHERE id = ?`,
+          [full_name, phone_number, address, kitchen_area_id, id],
+          (err) => {
+            if (err) {
+              return res.status(500).json({ error: "Internal server error." });
+            }
+            res.json({ message: "Successfully updated" });
+          }
+        );
+      } else {
+        org_db.run(
+          `UPDATE ${table_names[req.role]} SET full_name = ?, phone_number = ?, address = ? WHERE id = ?`,
+          [full_name, phone_number, address, id],
+          (err, ress) => {
+            if (err) {
+              return res.status(500).json({ error: "Internal server error." });
+            }
+            res.json({ message: "Successfully updated" });
+          }
+        );
+      }
     }
   });
 });

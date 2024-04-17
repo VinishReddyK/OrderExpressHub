@@ -45,9 +45,10 @@ function LoginPage() {
     try {
       const response = await api.post("/login", { email, password, org_name: restaurent });
       if (response.status === 200) {
-        const { token, role } = response.data;
+        const { token, role, user_id } = response.data;
         localStorage.setItem("token", token);
         localStorage.setItem("role", role);
+        localStorage.setItem("user_id", user_id);
         navigate("/");
       }
     } catch (error) {
