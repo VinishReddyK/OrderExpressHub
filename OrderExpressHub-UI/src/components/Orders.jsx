@@ -253,8 +253,8 @@ function OrdersComponent() {
                   <MenuItem value="preparing">Preparing</MenuItem>
                   <MenuItem value="ready">Ready</MenuItem>
                   <MenuItem value="serve">Serve</MenuItem>
-                  <MenuItem value="pack">Pack</MenuItem>
-                  <MenuItem value="pickup">Pickup</MenuItem>
+                  <MenuItem value="packed">Packed</MenuItem>
+                  <MenuItem value="pickedup">Picked Up</MenuItem>
                   <MenuItem value="closed">Closed</MenuItem>
                 </Select>
               </FormControl>

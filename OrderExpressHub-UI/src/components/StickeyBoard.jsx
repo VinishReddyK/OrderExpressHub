@@ -8,6 +8,15 @@ const ItemTypes = {
   CARD: "card",
 };
 
+const sectionStyle = {
+  padding: "10px",
+  width: "100%",
+  minHeight: "100px",
+  border: "1px dashed #ccc",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+  outline: "none",
+};
+
 const DraggableCard = ({ order, onMove }) => {
   const [, drag] = useDrag(() => ({
     type: ItemTypes.CARD,
@@ -26,6 +35,9 @@ const DraggableCard = ({ order, onMove }) => {
         <Typography variant="h6">Table {order.table_number}</Typography>
         <Typography variant="body1">Status: {order.status}</Typography>
         <Typography variant="body2">Items: {order.items.map((item) => item.name).join(", ")}</Typography>
+        <Typography variant="caption" style={{ color: "red" }}>
+          Priority: {order.priority}
+        </Typography>
       </Paper>
     </div>
   );
@@ -38,7 +50,7 @@ const Section = ({ status, children }) => {
   }));
 
   return (
-    <div ref={drop} style={{ padding: 10, width: "100%", minHeight: "100px" }}>
+    <div ref={drop} style={sectionStyle}>
       {children}
     </div>
   );
@@ -48,10 +60,16 @@ const StickyBoard = () => {
   const [orders, setOrders] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
 
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
   const fetchOrders = useCallback(async () => {
     if (!isDragging) {
       const response = await api.get("/orders");
-      setOrders(response.data);
+      // Sort orders by priority, assuming lower numbers are higher priority
+      const sortedOrders = response.data.sort((a, b) => a.priority - b.priority);
+      setOrders(sortedOrders);
     }
   }, [isDragging]);
 
@@ -67,7 +85,7 @@ const StickyBoard = () => {
     fetchOrders();
   };
 
-  const statuses = ["new", "confirmed", "preparing", "ready", "served", "paid", "closed"];
+  const statuses = ["assigned to kitchen", "preparing", "ready", "served", "packed", "pickedup", "closed"];
 
   return (
     <DndProvider backend={HTML5Backend}>
