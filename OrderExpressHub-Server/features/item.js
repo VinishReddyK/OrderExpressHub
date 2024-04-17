@@ -72,6 +72,25 @@ router.delete("/category/:id", (req, res) => {
   });
 });
 
+router.get("/plain", (req, res) => {
+  const db = getDatabaseInstance(req.schema_name);
+  db.all(
+    `
+    SELECT mi.id, mi.name, mi.description, mi.price, mi.category_id, mc.name as category_name
+    FROM menu_item mi
+    JOIN menu_category mc ON mi.category_id = mc.id
+    ORDER BY mi.category_id
+  `,
+    (err, rows) => {
+      if (err) {
+        res.status(500).json({ message: err.message });
+      } else {
+        res.json(rows);
+      }
+    }
+  );
+});
+
 router.get("/:id", (req, res) => {
   const { id } = req.params;
   const db = getDatabaseInstance(req.schema_name);

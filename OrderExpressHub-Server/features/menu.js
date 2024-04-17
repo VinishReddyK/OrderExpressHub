@@ -77,16 +77,8 @@ router.get("/", (req, res) => {
               if (err) {
                 reject(err);
               } else {
-                const groupedItems = itemsWithCategories.reduce((acc, item) => {
-                  const { category_name, ...itemWithoutCategoryName } = item;
-                  if (!acc[category_name]) {
-                    acc[category_name] = [];
-                  }
-                  acc[category_name].push(itemWithoutCategoryName);
-                  return acc;
-                }, {});
-
-                resolve({ ...menu, items: groupedItems });
+                const itemIds = itemsWithCategories.map((item) => item.id);
+                resolve({ ...menu, itemIds });
               }
             }
           );
@@ -132,13 +124,27 @@ router.post("/new", (req, res) => {
 
 router.put("/:id", (req, res) => {
   const { id } = req.params;
-  const { name, description, active } = req.body;
+  const { name, description, active, itemIds } = req.body;
   const db = getDatabaseInstance(req.schema_name);
   db.run("UPDATE menu SET name = ?, description = ?, active = ? WHERE id = ?", [name, description, active, id], (error) => {
     if (error) {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     } else {
-      res.status(200).json({ message: "Menu updated successfully" });
+      db.run("DELETE FROM menu_menu_item WHERE menu_id = ?", [id], (err) => {
+        if (err) {
+          return res.status(500).json({ error: error.message });
+        }
+        let itemsProcessed = 0;
+        itemIds.forEach((itemId) => {
+          db.run("INSERT INTO menu_menu_item (menu_id, menu_item_id) VALUES (?, ?)", [id, itemId], (err) => {
+            if (err) {
+              res.status(500).json({ error: err.message });
+              return;
+            }
+          });
+        });
+        res.status(200).json({ message: "Menu updated successfully" });
+      });
     }
   });
 });
