@@ -8,6 +8,8 @@ import CategoriesComponent from "./components/Categories";
 import ItemsComponent from "./components/Items";
 import UnifiedMenuManager from "./components/Menu";
 import KitchenAreaManager from "./components/Kitchen";
+import OrdersComponent from "./components/Orders";
+import StickyBoard from "./components/StickeyBoard";
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
             <Route path="/items" element={<ItemsComponent />} />
             <Route path="/menus" element={<UnifiedMenuManager />} />
             <Route path="/kitchen" element={<KitchenAreaManager />} />
+            <Route path="/orders" element={<OrdersComponent />} />
+            <Route path="/board" element={<StickyBoard />} />
           </Route>
         </Routes>
       </div>

@@ -28,56 +28,46 @@ router.get("/:id", (req, res) => {
           res.status(500).json({ error: error.message });
           return;
         }
-        const groupedItems = items.reduce((acc, item) => {
-          const { category_name, ...itemWithoutCategoryName } = item;
-          if (!acc[category_name]) {
-            acc[category_name] = [];
-          }
-          acc[category_name].push(itemWithoutCategoryName);
-          return acc;
-        }, {});
-
-        order.items = groupedItems;
-
+        order.items = items;
         res.json(order);
       }
     );
   });
 });
 
-router.get("/", (req, res) => {
-  const db = getDatabaseInstance(req.schema_name);
-  db.all("SELECT * FROM orders", (error, orders) => {
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
+const { promisify } = require("util");
+const { stat } = require("fs");
 
+router.get("/", async (req, res) => {
+  try {
+    const db = getDatabaseInstance(req.schema_name);
+    const dbAll = promisify(db.all).bind(db);
+
+    let orders = await dbAll("SELECT * FROM orders");
     if (orders.length === 0) {
       res.json(orders);
       return;
     }
 
-    let ordersProcessed = 0;
+    // Await the completion of data fetching for all orders
+    await Promise.all(
+      orders.map(async (order) => {
+        const items = await dbAll(
+          `SELECT mi.*, mc.name AS category_name, oi.quantity, oi.notes 
+         FROM menu_item mi 
+         JOIN order_items oi ON mi.id = oi.item_id
+         JOIN menu_category mc ON mi.category_id = mc.id
+         WHERE oi.order_id = ?`,
+          [order.id]
+        );
+        order.items = items;
+      })
+    );
 
-    orders.forEach((order) => {
-      db.all(
-        `SELECT mi.*, mc.name AS category_name, oi.quantity, oi.notes 
-        FROM menu_item mi 
-        JOIN order_items oi ON mi.id = oi.item_id
-        JOIN menu_category mc ON mi.category_id = mc.id
-        WHERE oi.order_id = ?`,
-        [order.id],
-        (error, items) => {
-          if (error) {
-            res.status(500).json({ error: error.message });
-            return;
-          }
-          res.json(items);
-        }
-      );
-    });
-  });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 router.post("/new", (req, res) => {
@@ -109,12 +99,23 @@ router.post("/new", (req, res) => {
   );
 });
 
+router.put("/status", (req, res) => {
+  const { id, status } = req.body;
+  const db = getDatabaseInstance(req.schema_name);
+  const updateQuery = "UPDATE orders SET status = ? where id = ?";
+  db.run(updateQuery, [status, id], (err) => {
+    if (err) {
+      return res.status(500).json({ error: error.message });
+    }
+    res.sendStatus(200);
+  });
+});
+
 router.put("/:id", (req, res) => {
   const { id } = req.params;
   const { timestamp, status, priority, total_amount, table_number, kitchen_area_id, items } = req.body;
   const db = getDatabaseInstance(req.schema_name);
 
-  // Start a transaction or ensure operations are batched for atomicity
   db.run("BEGIN TRANSACTION;");
 
   const updateQuery =

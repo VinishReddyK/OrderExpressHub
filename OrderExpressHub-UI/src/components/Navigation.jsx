@@ -6,13 +6,16 @@ import CategoryIcon from "@mui/icons-material/Category";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import SoupKitchenIcon from "@mui/icons-material/SoupKitchen";
+import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 
 const menuItems = [
   { text: "Profile", icon: <AccountCircleIcon fontSize="large" />, path: "/" },
   { text: "Categories", icon: <CategoryIcon fontSize="large" />, path: "/categories" },
   { text: "Items", icon: <FilterListIcon fontSize="large" />, path: "/items" },
   { text: "Menus", icon: <ListAltIcon fontSize="large" />, path: "/menus" },
-  { text: "Kitchen", icon: <SoupKitchenIcon fontSize="large" />, path: "/kitchen" },
+  { text: "Kitchen Areas", icon: <SoupKitchenIcon fontSize="large" />, path: "/kitchen" },
+  { text: "Orders", icon: <AddBusinessIcon fontSize="large" />, path: "/orders" },
+  { text: "Board", icon: <AddBusinessIcon fontSize="large" />, path: "/board" },
 ];
 
 const Navigation = () => {

@@ -26,7 +26,7 @@ app.use(verify);
 app.use("/items", itemsRoute);
 app.use("/menu", menuRoute);
 app.use("/kitchen", kitchenRoute);
-app.use("/order", orderRoute);
+app.use("/orders", orderRoute);
 app.use("/profile", profileRoute);
 
 //Testing authenticatoin
